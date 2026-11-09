@@ -1,0 +1,30 @@
+name: Release
+
+# jenkinsci에는 배포하지 않고, GitHub Release에 HPI만 첨부한다.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Set version from tag
+        run: mvn -B -ntp versions:set -DnewVersion="${GITHUB_REF_NAME#v}" -DgenerateBackupPoms=false
+      - name: Build, test and static analysis
+        run: mvn -B -ntp clean verify
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/jenkins-hierarchical-jobs.hpi
+          generate_release_notes: true
+          fail_on_unmatched_files: true

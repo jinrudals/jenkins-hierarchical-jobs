@@ -4,7 +4,7 @@
 
 | Tool | Version | Note |
 |------|---------|------|
-| Java (JDK) | 17 | OpenJDK 17 권장 |
+| Java (JDK) | 17+ | 17, 21에서 검증 (CI 매트릭스) |
 | Maven | 3.8+ | `mvn -version` 으로 확인 |
 | Docker | any | deploy 시 필요 (Jenkins 컨테이너 접근용) |
 

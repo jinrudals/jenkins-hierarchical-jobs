@@ -1,5 +1,5 @@
 /* =========================
- * Jenkins MR Automation — Main Webhook Pipeline
+ * Jenkins Hierarchical Jobs — Main Webhook Pipeline
  * Uses the recursiveCreateAndTrigger plugin step
  * ========================= */
 

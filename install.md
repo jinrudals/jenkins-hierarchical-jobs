@@ -38,7 +38,7 @@ make verify
 make clean
 ```
 
-빌드 완료 후 `target/jenkins-mr-automation.hpi` 파일이 생성됩니다.
+빌드 완료 후 `target/jenkins-hierarchical-jobs.hpi` 파일이 생성됩니다.
 
 ## Makefile 없이 직접 실행
 

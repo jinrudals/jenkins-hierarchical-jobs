@@ -28,7 +28,7 @@ mvn clean verify
 mvn test
 
 # Deploy to test Jenkins
-docker cp target/jenkins-mr-automation.hpi jenkins-mr-test:/var/jenkins_home/plugins/jenkins-mr-automation.hpi
+docker cp target/jenkins-hierarchical-jobs.hpi jenkins-mr-test:/var/jenkins_home/plugins/jenkins-hierarchical-jobs.hpi
 docker restart jenkins-mr-test
 ```
 

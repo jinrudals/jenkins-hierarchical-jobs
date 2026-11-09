@@ -15,21 +15,16 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        java: [17, 21]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ matrix.java }}
+          java-version: 21
           cache: maven
       - name: Build, test and static analysis
         run: mvn -B -ntp clean verify
       - name: Upload HPI
-        if: matrix.java == 21
         uses: actions/upload-artifact@v4
         with:
           name: jenkins-hierarchical-jobs-hpi

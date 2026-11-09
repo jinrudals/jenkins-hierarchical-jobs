@@ -9,7 +9,7 @@ GitLab MR 파이프라인 자동화를 위한 Jenkins Pipeline Step 플러그인
 ## Requirements
 
 - Jenkins 2.580.1+ (LTS)
-- Java 17+ (17, 21에서 CI 검증)
+- Java 21 (빌드 시 필요, Jenkins parent POM 6.x 요구사항)
 
 ## Pipeline Steps
 
@@ -72,7 +72,7 @@ recursiveCreateAndTrigger(
 
 ## CI / Release
 
-- **CI** (`.github/workflows/ci.yml`): `main` push 및 PR마다 Java 17/21에서 `mvn clean verify`(테스트 + 정적 분석)를 실행하고, HPI를 아티팩트로 업로드합니다.
+- **CI** (`.github/workflows/ci.yml`): `main` push 및 PR마다 Java 21에서 `mvn clean verify`(테스트 + 정적 분석)를 실행하고, HPI를 아티팩트로 업로드합니다.
 - **Release** (`.github/workflows/release.yml`): `v*` 태그(예: `v1.0.0`)를 push하면 태그 버전으로 `verify` 빌드 후 GitHub Release에 HPI를 첨부합니다.
   jenkinsci(update center)에는 배포하지 않습니다.
 

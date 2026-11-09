@@ -1,4 +1,4 @@
-JAVA_HOME ?= /tools/java/openjdk/17.0.2
+JAVA_HOME ?= /path/to/jdk-21
 export JAVA_HOME
 export PATH := $(JAVA_HOME)/bin:$(PATH)
 

@@ -1,4 +1,4 @@
-# Jenkins MR Automation Plugin
+# Jenkins Hierarchical Jobs Plugin
 
 GitLab MR 파이프라인 자동화를 위한 Jenkins Pipeline Step 플러그인.
 

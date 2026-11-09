@@ -2,7 +2,7 @@ JAVA_HOME ?= /tools/java/openjdk/17.0.2
 export JAVA_HOME
 export PATH := $(JAVA_HOME)/bin:$(PATH)
 
-ARTIFACT = target/jenkins-mr-automation.hpi
+ARTIFACT = target/jenkins-hierarchical-jobs.hpi
 CONTAINER ?= jenkins-mr-test
 PLUGIN_DIR = /var/jenkins_home/plugins
 
@@ -26,7 +26,7 @@ clean:
 
 ## Copy HPI to running Jenkins container and restart
 deploy: $(ARTIFACT)
-	docker cp $(ARTIFACT) $(CONTAINER):$(PLUGIN_DIR)/jenkins-mr-automation.hpi
+	docker cp $(ARTIFACT) $(CONTAINER):$(PLUGIN_DIR)/jenkins-hierarchical-jobs.hpi
 	docker restart $(CONTAINER)
 
 $(ARTIFACT): build

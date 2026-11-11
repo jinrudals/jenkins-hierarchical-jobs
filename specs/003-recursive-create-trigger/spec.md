@@ -124,6 +124,7 @@ The step supports a `skipPattern` parameter. When the repo path matches this reg
 - **FR-013**: The step MUST fail with a clear error when `repoPath` is null, empty, or blank.
 - **FR-014**: When no configuration rule matches the repo path, the step MUST fall back to `defaultTargetName` and `defaultTemplate` instead of failing.
 - **FR-015**: The step MUST fail with a clear error when the matched template job does not exist in Jenkins.
+- **FR-016**: When `syncExisting` is `true` (default `false`) and the target job already exists, the step MUST overwrite the target's configuration with the matched template's only if they differ (logging `SYNC updated` / `SYNC unchanged`), then trigger it. It MUST fail if the template is missing or its type differs from the target's.
 
 ### Key Entities
 

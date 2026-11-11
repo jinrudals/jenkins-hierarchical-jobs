@@ -3,19 +3,24 @@ package io.jenkins.plugins.mrautomation;
 import com.cloudbees.hudson.plugins.folder.Folder;
 import hudson.AbortException;
 import hudson.Extension;
+import hudson.model.AbstractItem;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
 import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
+import hudson.model.Items;
 import hudson.model.Job;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.TopLevelItem;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import jenkins.model.Jenkins;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -34,6 +39,7 @@ public class RecursiveCreateAndTriggerStep extends Step {
     private List<TemplateRule> configuration;
     private String defaultTargetName = "${REPO}/merge_request";
     private String skipPattern;
+    private boolean syncExisting;
 
     @DataBoundConstructor
     public RecursiveCreateAndTriggerStep(String repoPath, String defaultTemplate) {
@@ -46,6 +52,7 @@ public class RecursiveCreateAndTriggerStep extends Step {
     public List<TemplateRule> getConfiguration() { return configuration; }
     public String getDefaultTargetName() { return defaultTargetName; }
     public String getSkipPattern() { return skipPattern; }
+    public boolean isSyncExisting() { return syncExisting; }
 
     @DataBoundSetter
     public void setConfiguration(List<TemplateRule> configuration) { this.configuration = configuration; }
@@ -55,6 +62,9 @@ public class RecursiveCreateAndTriggerStep extends Step {
 
     @DataBoundSetter
     public void setSkipPattern(String skipPattern) { this.skipPattern = skipPattern; }
+
+    @DataBoundSetter
+    public void setSyncExisting(boolean syncExisting) { this.syncExisting = syncExisting; }
 
     @Override
     public StepExecution start(StepContext context) throws Exception {
@@ -132,8 +142,13 @@ public class RecursiveCreateAndTriggerStep extends Step {
             }
 
             // FR-009: skip creation if target already exists
-            if (Jenkins.get().getItemByFullName(targetName) != null) {
-                listener.getLogger().println("[recursiveCreateAndTrigger] SKIP creation (already exists): " + targetName);
+            Item existingTarget = Jenkins.get().getItemByFullName(targetName);
+            if (existingTarget != null) {
+                if (step.isSyncExisting()) {
+                    syncFromTemplate(existingTarget, templatePath, listener);
+                } else {
+                    listener.getLogger().println("[recursiveCreateAndTrigger] SKIP creation (already exists): " + targetName);
+                }
                 triggerJob(targetName, currentRun, listener);
                 return null;
             }
@@ -215,6 +230,28 @@ public class RecursiveCreateAndTriggerStep extends Step {
                     throw new IOException("Failed to copy template to: " + fullPath, e);
                 }
             }
+        }
+
+        private void syncFromTemplate(Item target, String templatePath, TaskListener listener) throws IOException {
+            TopLevelItem template = Jenkins.get().getItemByFullName(templatePath, TopLevelItem.class);
+            if (template == null) {
+                throw new AbortException("Template job not found: " + templatePath);
+            }
+            if (!template.getClass().equals(target.getClass())) {
+                throw new AbortException("Cannot sync " + target.getFullName() + " (" + target.getClass().getSimpleName()
+                        + ") from template " + templatePath + " (" + template.getClass().getSimpleName() + "): type mismatch");
+            }
+            String templateXml = normalizeXml(Items.getConfigFile(template).asString());
+            if (templateXml.equals(normalizeXml(Items.getConfigFile(target).asString()))) {
+                listener.getLogger().println("[recursiveCreateAndTrigger] SYNC unchanged (skip): " + target.getFullName());
+                return;
+            }
+            ((AbstractItem) target).updateByXml((Source) new StreamSource(new StringReader(templateXml)));
+            listener.getLogger().println("[recursiveCreateAndTrigger] SYNC updated: " + target.getFullName());
+        }
+
+        private static String normalizeXml(String xml) {
+            return xml.replace("\r\n", "\n").strip();
         }
 
         private void triggerJob(String targetJobPath, Run<?, ?> currentRun, TaskListener listener) throws AbortException {

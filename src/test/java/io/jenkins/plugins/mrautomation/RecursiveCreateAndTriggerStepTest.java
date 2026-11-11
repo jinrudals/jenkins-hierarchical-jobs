@@ -245,4 +245,58 @@ public class RecursiveCreateAndTriggerStepTest {
         WorkflowRun run = j.assertBuildStatus(Result.FAILURE, job.scheduleBuild2(0));
         assertTrue("should mention not a Folder", run.getLog().contains("exists but is not a Folder"));
     }
+
+    // --- syncExisting ---
+
+    private WorkflowRun runStep(String name, boolean syncExisting) throws Exception {
+        WorkflowJob job = j.createProject(WorkflowJob.class, name);
+        job.setDefinition(new CpsFlowDefinition(
+                "recursiveCreateAndTrigger repoPath: 'sync/repo', defaultTemplate: 'sync-template'"
+                        + (syncExisting ? ", syncExisting: true" : ""),
+                true));
+        return j.assertBuildStatusSuccess(job.scheduleBuild2(0));
+    }
+
+    private String targetDescription() {
+        return ((FreeStyleProject) j.jenkins.getItemByFullName("sync/repo/merge_request")).getDescription();
+    }
+
+    @Test
+    public void syncExistingUpdatesChangedTemplate() throws Exception {
+        FreeStyleProject template = j.createFreeStyleProject("sync-template");
+        template.setDescription("v1");
+        runStep("sync-1", false);
+        assertEquals("v1", targetDescription());
+
+        template.setDescription("v2");
+        String log = runStep("sync-2", true).getLog();
+
+        assertEquals("v2", targetDescription());
+        assertTrue("should log update", log.contains("SYNC updated: sync/repo/merge_request"));
+        assertTrue("should still trigger", log.contains("TRIGGER job: sync/repo/merge_request"));
+    }
+
+    @Test
+    public void syncExistingSkipsWhenConfigUnchanged() throws Exception {
+        j.createFreeStyleProject("sync-template").setDescription("v1");
+        runStep("sync-1", false);
+
+        String log = runStep("sync-2", true).getLog();
+
+        assertTrue("should log unchanged", log.contains("SYNC unchanged (skip): sync/repo/merge_request"));
+        assertTrue("should still trigger", log.contains("TRIGGER job: sync/repo/merge_request"));
+    }
+
+    @Test
+    public void existingJobNotUpdatedByDefault() throws Exception {
+        FreeStyleProject template = j.createFreeStyleProject("sync-template");
+        template.setDescription("v1");
+        runStep("sync-1", false);
+
+        template.setDescription("v2");
+        String log = runStep("sync-2", false).getLog();
+
+        assertEquals("v1", targetDescription());
+        assertTrue("should log skip", log.contains("SKIP creation (already exists)"));
+    }
 }

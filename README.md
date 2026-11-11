@@ -64,6 +64,7 @@ recursiveCreateAndTrigger(
 | `defaultTargetName` | | 생성될 Job 이름 패턴. `${REPO}`가 repoPath로 치환됨. 기본값: `${REPO}/merge_request` |
 | `skipPattern` | | 매칭 시 Job 생성/트리거를 건너뛰는 regex |
 | `configuration` | | `templateRule` 목록. pattern 매칭 시 해당 template/target 사용 |
+| `syncExisting` | | `true`이면 이미 존재하는 Job의 config.xml이 template과 다를 때 template 내용으로 덮어씀 (빌드 이력 유지, 동일하면 skip). 기본값: `false` |
 
 ## Documentation
 
